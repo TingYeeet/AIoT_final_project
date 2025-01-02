@@ -5,11 +5,11 @@
 
 訓練資料
 --------------------------
-after_crop
+/after_crop
 
 執行分割+類別預測
 --------------------------
-application  
+/application  
 real_predict.py讀取/test_img的檔案  
 將預測結果輸出至/prediction
 
