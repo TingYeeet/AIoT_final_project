@@ -1,6 +1,6 @@
 #模型訓練
 --------------------------
-efficientnet_b2.py|inception_v3.py|mobilenet_v2.py|resnet18.py|squeezenet.py
+|efficientnet_b2.py|inception_v3.py|mobilenet_v2.py|resnet18.py|squeezenet.py|
 --------------------------
 #訓練資料
 --------------------------
