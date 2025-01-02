@@ -1,0 +1,133 @@
+Training Started for 25 epochs
+----------------------------------------
+Epoch 1/25
+--------------------
+Train Loss: 1.9595 Acc: 0.2000
+Val Loss: 1.8905 Acc: 0.2000
+Checkpoint: 穝程ㄎ家舦
+
+Epoch 2/25
+--------------------
+Train Loss: 1.8904 Acc: 0.2188
+Val Loss: 1.7788 Acc: 0.3500
+Checkpoint: 穝程ㄎ家舦
+
+Epoch 3/25
+--------------------
+Train Loss: 1.8210 Acc: 0.2708
+Val Loss: 1.7370 Acc: 0.3167
+
+Epoch 4/25
+--------------------
+Train Loss: 1.7965 Acc: 0.2938
+Val Loss: 1.6833 Acc: 0.3000
+
+Epoch 5/25
+--------------------
+Train Loss: 1.7586 Acc: 0.3167
+Val Loss: 1.6695 Acc: 0.3500
+
+Epoch 6/25
+--------------------
+Train Loss: 1.7058 Acc: 0.3479
+Val Loss: 1.6454 Acc: 0.4500
+Checkpoint: 穝程ㄎ家舦
+
+Epoch 7/25
+--------------------
+Train Loss: 1.7082 Acc: 0.3708
+Val Loss: 1.5970 Acc: 0.4500
+
+Epoch 8/25
+--------------------
+Train Loss: 1.6681 Acc: 0.3854
+Val Loss: 1.5982 Acc: 0.4667
+Checkpoint: 穝程ㄎ家舦
+
+Epoch 9/25
+--------------------
+Train Loss: 1.6432 Acc: 0.3937
+Val Loss: 1.5772 Acc: 0.3833
+
+Epoch 10/25
+--------------------
+Train Loss: 1.5893 Acc: 0.4437
+Val Loss: 1.5470 Acc: 0.4500
+
+Epoch 11/25
+--------------------
+Train Loss: 1.5895 Acc: 0.4417
+Val Loss: 1.5489 Acc: 0.4333
+
+Epoch 12/25
+--------------------
+Train Loss: 1.5590 Acc: 0.4521
+Val Loss: 1.5473 Acc: 0.4667
+
+Epoch 13/25
+--------------------
+Train Loss: 1.5483 Acc: 0.4458
+Val Loss: 1.5248 Acc: 0.4500
+
+Epoch 14/25
+--------------------
+Train Loss: 1.5504 Acc: 0.4542
+Val Loss: 1.5114 Acc: 0.4333
+
+Epoch 15/25
+--------------------
+Train Loss: 1.5482 Acc: 0.4604
+Val Loss: 1.5295 Acc: 0.4500
+
+Epoch 16/25
+--------------------
+Train Loss: 1.5262 Acc: 0.4896
+Val Loss: 1.5095 Acc: 0.4667
+
+Epoch 17/25
+--------------------
+Train Loss: 1.5127 Acc: 0.4708
+Val Loss: 1.5022 Acc: 0.5000
+Checkpoint: 穝程ㄎ家舦
+
+Epoch 18/25
+--------------------
+Train Loss: 1.5092 Acc: 0.4667
+Val Loss: 1.5067 Acc: 0.4667
+
+Epoch 19/25
+--------------------
+Train Loss: 1.5161 Acc: 0.4521
+Val Loss: 1.5099 Acc: 0.4500
+
+Epoch 20/25
+--------------------
+Train Loss: 1.5069 Acc: 0.4937
+Val Loss: 1.4884 Acc: 0.4667
+
+Epoch 21/25
+--------------------
+Train Loss: 1.4808 Acc: 0.4750
+Val Loss: 1.4703 Acc: 0.4833
+
+Epoch 22/25
+--------------------
+Train Loss: 1.4854 Acc: 0.5021
+Val Loss: 1.4833 Acc: 0.4667
+
+Epoch 23/25
+--------------------
+Train Loss: 1.4801 Acc: 0.4854
+Val Loss: 1.4455 Acc: 0.4833
+
+Epoch 24/25
+--------------------
+Train Loss: 1.5066 Acc: 0.4833
+Val Loss: 1.4574 Acc: 0.5000
+
+Epoch 25/25
+--------------------
+Train Loss: 1.4574 Acc: 0.5125
+Val Loss: 1.4843 Acc: 0.4500
+
+程ㄎ喷靡非絋瞯: 0.5000

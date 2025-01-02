@@ -1,0 +1,56 @@
+Training Started for 10 epochs
+----------------------------------------
+Epoch 1/10
+--------------------
+Train Loss: 1.1640 Acc: 0.6042
+Val Loss: 0.7820 Acc: 0.7333
+Checkpoint: 穝程ㄎ家舦
+
+Epoch 2/10
+--------------------
+Train Loss: 1.1438 Acc: 0.6062
+Val Loss: 0.7175 Acc: 0.7667
+Checkpoint: 穝程ㄎ家舦
+
+Epoch 3/10
+--------------------
+Train Loss: 1.0520 Acc: 0.6562
+Val Loss: 0.7307 Acc: 0.7167
+
+Epoch 4/10
+--------------------
+Train Loss: 0.9639 Acc: 0.6771
+Val Loss: 0.7061 Acc: 0.7667
+
+Epoch 5/10
+--------------------
+Train Loss: 0.9611 Acc: 0.6625
+Val Loss: 0.6880 Acc: 0.7500
+
+Epoch 6/10
+--------------------
+Train Loss: 0.8783 Acc: 0.7354
+Val Loss: 0.6947 Acc: 0.7667
+
+Epoch 7/10
+--------------------
+Train Loss: 0.9055 Acc: 0.7083
+Val Loss: 0.6961 Acc: 0.8000
+Checkpoint: 穝程ㄎ家舦
+
+Epoch 8/10
+--------------------
+Train Loss: 0.8916 Acc: 0.7479
+Val Loss: 0.6973 Acc: 0.7333
+
+Epoch 9/10
+--------------------
+Train Loss: 0.8527 Acc: 0.7417
+Val Loss: 0.7154 Acc: 0.7500
+
+Epoch 10/10
+--------------------
+Train Loss: 0.9074 Acc: 0.7271
+Val Loss: 0.7540 Acc: 0.7500
+
+程ㄎ喷靡非絋瞯: 0.8000
