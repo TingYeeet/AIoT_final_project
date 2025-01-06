@@ -36,7 +36,7 @@ val_test_transform = transforms.Compose([
 
 # 設定資料夾路徑
 # 假設資料夾結構如下：
-# after_crop/Surprised, Scared, Sad, Normal, Happy, Disgusted, Angry
+# after_crop/Angry, Disgusted, Happy, Normal, Sad, Scared, Surprised
 # after_crop 資料夾內每個子資料夾對應一個類別
 
 # 使用 ImageFolder 加載資料
@@ -125,7 +125,7 @@ print("Dataset sizes:", dataset_sizes)
 def train_model(model, dataloaders, criterion, optimizer, scheduler, num_epochs=5, log_file='train_log.txt'):
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
-    history = {'train_acc': [], 'val_acc': []}
+    history = {'train_acc': [], 'val_acc': [], 'train_loss': [], 'val_loss': [], 'lr': []}
 
     # 開啟 log 文件進行寫入
     with open(log_file, 'w') as log:
@@ -163,7 +163,8 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, num_epochs=
                     # 前向傳播
                     with torch.set_grad_enabled(phase == 'train'):
                         outputs = model(inputs)
-                        logits = outputs
+
+                        logits = outputs  # 如果是 Tensor，直接使用
                         _, preds = torch.max(logits, 1)
                         loss = criterion(logits, labels)
 
@@ -179,6 +180,7 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, num_epochs=
                 # 更新學習率調度器
                 if phase == 'train':
                     scheduler.step()
+                    history['lr'].append(optimizer.param_groups[0]['lr'])
 
                 # 計算每個 epoch 的損失和準確率
                 epoch_loss = running_loss / dataset_sizes[phase]
@@ -190,8 +192,10 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, num_epochs=
                 # 保存準確率歷史記錄
                 if phase == 'train':
                     history['train_acc'].append(epoch_acc.item())
+                    history['train_loss'].append(epoch_loss)
                 else:
                     history['val_acc'].append(epoch_acc.item())
+                    history['val_loss'].append(epoch_loss)
 
                 # 如果驗證準確率提高，保存模型權重
                 if phase == 'val' and epoch_acc > best_acc:
@@ -214,7 +218,15 @@ result_path = '../result/MobileNetV2/mobilenetv2'
 
 # # 訓練模型
 # num_epochs = 25
-# best_model, history = train_model(model, dataloaders, criterion, optimizer, exp_lr_scheduler, num_epochs, log_file=result_path+"_fe.txt")
+# best_model, history = train_model(
+#     model, 
+#     dataloaders, 
+#     criterion, 
+#     optimizer, 
+#     exp_lr_scheduler, 
+#     num_epochs, 
+#     log_file=result_path+"_fe.txt"
+# )
 
 # # 保存最佳模型權重
 # torch.save(best_model.state_dict(), result_path+'_feature_extraction.pth')
@@ -226,17 +238,36 @@ result_path = '../result/MobileNetV2/mobilenetv2'
 
 # # 添加數值標註
 # for epoch, acc in zip(epochs, history['train_acc']):
-#     plt.text(epoch, acc, f"{acc:.2f}", ha='center', va='bottom', fontsize=6, color='blue')
+#     plt.text(epoch, acc, f"{acc:.2f}", ha='center', va='bottom', fontsize=8, color='blue')
 
 # for epoch, acc in zip(epochs, history['val_acc']):
-#     plt.text(epoch, acc, f"{acc:.2f}", ha='center', va='bottom', fontsize=6, color='orange')
+#     plt.text(epoch, acc, f"{acc:.2f}", ha='center', va='bottom', fontsize=8, color='orange')
 
 # plt.xlabel('Epoch')
-# plt.ylabel('accuracy')
+# plt.ylabel('Accuracy')
 # plt.legend()
-# plt.title('Train and Validation Accuracy-Feature Extraction')
+# plt.title('Train and Validation Accuracy - Feature Extraction')
 
 # plt.savefig(result_path+'_feature_extraction.png')
+# plt.clf()
+
+# # 繪製訓練和驗證損失曲線
+# plt.plot(epochs, history['train_loss'], label='Train Loss', marker='o')
+# plt.plot(epochs, history['val_loss'], label='Val Loss', marker='o')
+
+# # 添加數值標註
+# for epoch, loss in zip(epochs, history['train_loss']):
+#     plt.text(epoch, loss, f"{loss:.2f}", ha='center', va='bottom', fontsize=8, color='blue')
+
+# for epoch, loss in zip(epochs, history['val_loss']):
+#     plt.text(epoch, loss, f"{loss:.2f}", ha='center', va='bottom', fontsize=8, color='orange')
+
+# plt.xlabel('Epoch')
+# plt.ylabel('Loss')
+# plt.legend()
+# plt.title('Train and Validation Loss - Feature Extraction')
+
+# plt.savefig(result_path+'_feature_extraction_loss.png')
 # plt.clf()
 
 """四、進行fine-tuning"""
@@ -253,18 +284,11 @@ num_ftrs = model.last_channel  # MobileNetV2 的輸出通道數 (通常是 1280)
 model.classifier[1] = nn.Linear(num_ftrs, 7)  # 替換最後的全連接層為新的類別數
 
 # 載入之前保存的權重
-model.load_state_dict(torch.load(result_path+'_feature_extraction.pth'))
+model.load_state_dict(torch.load(result_path+'_feature_extraction.pth',weights_only=True))
 
-# 鎖定所有層的參數
-for param in model.parameters():
-    param.requires_grad = False
-
-# 解凍 MobileNetV2 的最後兩個卷積層
+# 解凍 MobileNetV2 的所有層
 for name, param in model.named_parameters():
-    # if "features.17" in name or "features.18" in name:  # MobileNetV2 的最後兩個卷積層是 features.17 和 features.18
-    #     param.requires_grad = True
-    # else:
-        param.requires_grad = True
+    param.requires_grad = True
 
 # 將模型移動到 GPU
 model = model.to(device)
@@ -305,11 +329,30 @@ for epoch, acc in zip(epochs, history_fine_tune['val_acc']):
     plt.text(epoch, acc, f"{acc:.2f}", ha='center', va='bottom', fontsize=8, color='orange')
 
 plt.xlabel('Epoch')
-plt.ylabel('accuracy')
+plt.ylabel('Accuracy')
 plt.legend()
-plt.title('Train and Validation Accuracy-Fine-tuning')
+plt.title('Train and Validation Accuracy - Fine-tuning')
 
 plt.savefig(result_path+'_finetuning.png')
+plt.clf()
+
+# 繪製訓練和驗證損失曲線
+plt.plot(epochs, history_fine_tune['train_loss'], label='Train Loss', marker='o')
+plt.plot(epochs, history_fine_tune['val_loss'], label='Val Loss', marker='o')
+
+# 添加數值標註
+for epoch, loss in zip(epochs, history_fine_tune['train_loss']):
+    plt.text(epoch, loss, f"{loss:.2f}", ha='center', va='bottom', fontsize=8, color='blue')
+
+for epoch, loss in zip(epochs, history_fine_tune['val_loss']):
+    plt.text(epoch, loss, f"{loss:.2f}", ha='center', va='bottom', fontsize=8, color='orange')
+
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.legend()
+plt.title('Train and Validation Loss - Fine-tuning')
+
+plt.savefig(result_path+'_finetuning_loss.png')
 plt.clf()
 
 """五、使用微調完的模型對測試資料及做推論，計算top-1至top-3 accuracy"""
@@ -394,5 +437,10 @@ with torch.no_grad():
         if all(count >= images_per_class for count in class_display_count.values()):
             break
 
+top1 = str(round(test_topk_accuracy["Top-1 Accuracy"], 2))
+top2 = str(round(test_topk_accuracy["Top-2 Accuracy"], 2))
+top3 = str(round(test_topk_accuracy["Top-3 Accuracy"], 2))
+
+# 確保布局緊湊
 plt.tight_layout()
-plt.savefig(result_path + "_" + str(round(test_topk_accuracy["Top-1 Accuracy"], 2)) + ".png")
+plt.savefig(f"{result_path}_{top1}_{top2}_{top3}.png")

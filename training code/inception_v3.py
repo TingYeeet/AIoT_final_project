@@ -46,7 +46,7 @@ val_test_transform = transforms.Compose([
 
 # 設定資料夾路徑
 # 假設資料夾結構如下：
-# after_crop/Surprised, Scared, Sad, Normal, Happy, Disgusted, Angry
+# after_crop/Angry, Disgusted, Happy, Normal, Sad, Scared, Surprised
 # after_crop 資料夾內每個子資料夾對應一個類別
 
 # 使用 ImageFolder 加載資料

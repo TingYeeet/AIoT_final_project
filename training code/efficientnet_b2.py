@@ -46,7 +46,7 @@ val_test_transform = transforms.Compose([
 
 # 設定資料夾路徑
 # 假設資料夾結構如下：
-# after_crop/Surprised, Scared, Sad, Normal, Happy, Disgusted, Angry
+# after_crop/Angry, Disgusted, Happy, Normal, Sad, Scared, Surprised
 # after_crop 資料夾內每個子資料夾對應一個類別
 
 # 使用 ImageFolder 加載資料
@@ -108,40 +108,41 @@ print("Dataset sizes:", dataset_sizes)
 # 修改 EfficientNet-B2 模型以適應 7 個輸出類別
 # 使用最新的權重參數設置方法
 
-# 載入 EfficientNet-B2 預訓練模型
-model = models.efficientnet_b2(pretrained=True)
+# # 載入 EfficientNet-B2 預訓練模型
+# weights = models.EfficientNet_B2_Weights.DEFAULT
+# model = models.efficientnet_b2(weights=weights)
 
-# 凍結所有卷積層的權重（特徵提取部分）
-for param in model.features.parameters():
-    param.requires_grad = False
+# # 凍結所有卷積層的權重（特徵提取部分）
+# for param in model.features.parameters():
+#     param.requires_grad = False
 
-# 修改分類器以適應 7 個輸出類別
-# EfficientNet 的分類器是一個 nn.Sequential，取出輸入特徵數並替換最後一層
-num_ftrs = model.classifier[1].in_features
-model.classifier[1] = nn.Linear(num_ftrs, 7)  # 替換為 7 類的新分類器
+# # 修改分類器以適應 7 個輸出類別
+# # EfficientNet 的分類器是一個 nn.Sequential，取出輸入特徵數並替換最後一層
+# num_ftrs = model.classifier[1].in_features
+# model.classifier[1] = nn.Linear(num_ftrs, 7)  # 替換為 7 類的新分類器
 
-# 將模型移動到 GPU
-model = model.to(device)
+# # 將模型移動到 GPU
+# model = model.to(device)
 
-# 設置損失函數和優化器
-criterion = nn.CrossEntropyLoss()
+# # 設置損失函數和優化器
+# criterion = nn.CrossEntropyLoss()
 
-# 只優化未凍結的層（即全連接層），並加入 L2 正則化
-optimizer = optim.SGD(
-    model.classifier.parameters(), 
-    lr=0.001, 
-    momentum=0.9, 
-    weight_decay=0.01  # L2 正則化權重
-)
+# # 只優化未凍結的層（即全連接層），並加入 L2 正則化
+# optimizer = optim.SGD(
+#     model.classifier.parameters(), 
+#     lr=0.001, 
+#     momentum=0.9, 
+#     weight_decay=0.01  # L2 正則化權重
+# )
 
-# 設置學習率調度器
-exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
+# # 設置學習率調度器
+# exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=10, gamma=0.5)
 
 # 定義訓練模型的函數
 def train_model(model, dataloaders, criterion, optimizer, scheduler, num_epochs=5, log_file='train_log.txt'):
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
-    history = {'train_acc': [], 'val_acc': []}
+    history = {'train_acc': [], 'val_acc': [], 'train_loss': [], 'val_loss': [], 'lr': []}
 
     # 開啟 log 文件進行寫入
     with open(log_file, 'w') as log:
@@ -196,6 +197,7 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, num_epochs=
                 # 更新學習率調度器
                 if phase == 'train':
                     scheduler.step()
+                    history['lr'].append(optimizer.param_groups[0]['lr'])
 
                 # 計算每個 epoch 的損失和準確率
                 epoch_loss = running_loss / dataset_sizes[phase]
@@ -207,8 +209,10 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, num_epochs=
                 # 保存準確率歷史記錄
                 if phase == 'train':
                     history['train_acc'].append(epoch_acc.item())
+                    history['train_loss'].append(epoch_loss)
                 else:
                     history['val_acc'].append(epoch_acc.item())
+                    history['val_loss'].append(epoch_loss)
 
                 # 如果驗證準確率提高，保存模型權重
                 if phase == 'val' and epoch_acc > best_acc:
@@ -229,32 +233,59 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, num_epochs=
 
 result_path = '../result/EfficientNet-B2/efficientnetb2'
 
-# 訓練模型
-num_epochs = 25
-best_model, history = train_model(model, dataloaders, criterion, optimizer, exp_lr_scheduler, num_epochs, log_file=result_path+"_fe.txt")
+# # 訓練模型
+# num_epochs = 25
+# best_model, history = train_model(
+#     model, 
+#     dataloaders, 
+#     criterion, 
+#     optimizer, 
+#     exp_lr_scheduler, 
+#     num_epochs, 
+#     log_file=result_path+"_fe.txt"
+# )
 
-# 保存最佳模型權重
-torch.save(best_model.state_dict(), result_path+'_feature_extraction.pth')
+# # 保存最佳模型權重
+# torch.save(best_model.state_dict(), result_path+'_feature_extraction.pth')
 
-# 繪製訓練和驗證準確率
-epochs = range(1, num_epochs+1)
-plt.plot(epochs, history['train_acc'], label='Train Accuracy', marker='o')
-plt.plot(epochs, history['val_acc'], label='Val Accuracy', marker='o')
+# # 繪製訓練和驗證準確率
+# epochs = range(1, num_epochs+1)
+# plt.plot(epochs, history['train_acc'], label='Train Accuracy', marker='o')
+# plt.plot(epochs, history['val_acc'], label='Val Accuracy', marker='o')
 
-# 添加數值標註
-for epoch, acc in zip(epochs, history['train_acc']):
-    plt.text(epoch, acc, f"{acc:.2f}", ha='center', va='bottom', fontsize=8, color='blue')
+# # 添加數值標註
+# for epoch, acc in zip(epochs, history['train_acc']):
+#     plt.text(epoch, acc, f"{acc:.2f}", ha='center', va='bottom', fontsize=8, color='blue')
 
-for epoch, acc in zip(epochs, history['val_acc']):
-    plt.text(epoch, acc, f"{acc:.2f}", ha='center', va='bottom', fontsize=8, color='orange')
+# for epoch, acc in zip(epochs, history['val_acc']):
+#     plt.text(epoch, acc, f"{acc:.2f}", ha='center', va='bottom', fontsize=8, color='orange')
 
-plt.xlabel('Epoch')
-plt.ylabel('accuracy')
-plt.legend()
-plt.title('Train and Validation Accuracy-Feature Extraction')
+# plt.xlabel('Epoch')
+# plt.ylabel('Accuracy')
+# plt.legend()
+# plt.title('Train and Validation Accuracy - Feature Extraction')
 
-plt.savefig(result_path+'_feature_extraction.png')
-plt.clf()
+# plt.savefig(result_path+'_feature_extraction.png')
+# plt.clf()
+
+# # 繪製訓練和驗證損失曲線
+# plt.plot(epochs, history['train_loss'], label='Train Loss', marker='o')
+# plt.plot(epochs, history['val_loss'], label='Val Loss', marker='o')
+
+# # 添加數值標註
+# for epoch, loss in zip(epochs, history['train_loss']):
+#     plt.text(epoch, loss, f"{loss:.2f}", ha='center', va='bottom', fontsize=8, color='blue')
+
+# for epoch, loss in zip(epochs, history['val_loss']):
+#     plt.text(epoch, loss, f"{loss:.2f}", ha='center', va='bottom', fontsize=8, color='orange')
+
+# plt.xlabel('Epoch')
+# plt.ylabel('Loss')
+# plt.legend()
+# plt.title('Train and Validation Loss - Feature Extraction')
+
+# plt.savefig(result_path+'_feature_extraction_loss.png')
+# plt.clf()
 
 """四、進行fine-tuning"""
 
@@ -262,7 +293,7 @@ plt.clf()
 # 假設特徵提取的最佳模型已經訓練完成並保存為 "efficientnetb2_feature_extraction.pth"
 
 # 載入 EfficientNet-B2 預訓練模型
-model = models.efficientnet_b2(pretrained=True)
+model = models.efficientnet_b2()
 
 # 修改分類器以適應 7 個輸出類別
 # EfficientNet 的分類器是一個 nn.Sequential，取出輸入特徵數並替換最後一層
@@ -270,7 +301,7 @@ num_ftrs = model.classifier[1].in_features
 model.classifier[1] = nn.Linear(num_ftrs, 7)  # 替換為 7 類的新分類器
 
 # 載入已保存的權重
-checkpoint = torch.load(result_path+"_feature_extraction.pth")
+checkpoint = torch.load(result_path+"_feature_extraction.pth", weights_only=True)
 model.load_state_dict(checkpoint)
 
 # 凍結所有權重
@@ -324,11 +355,30 @@ for epoch, acc in zip(epochs, history_fine_tune['val_acc']):
     plt.text(epoch, acc, f"{acc:.2f}", ha='center', va='bottom', fontsize=8, color='orange')
 
 plt.xlabel('Epoch')
-plt.ylabel('accuracy')
+plt.ylabel('Accuracy')
 plt.legend()
-plt.title('Train and Validation Accuracy-Fine-tuning')
+plt.title('Train and Validation Accuracy - Fine-tuning')
 
 plt.savefig(result_path+'_finetuning.png')
+plt.clf()
+
+# 繪製訓練和驗證損失曲線
+plt.plot(epochs, history_fine_tune['train_loss'], label='Train Loss', marker='o')
+plt.plot(epochs, history_fine_tune['val_loss'], label='Val Loss', marker='o')
+
+# 添加數值標註
+for epoch, loss in zip(epochs, history_fine_tune['train_loss']):
+    plt.text(epoch, loss, f"{loss:.2f}", ha='center', va='bottom', fontsize=8, color='blue')
+
+for epoch, loss in zip(epochs, history_fine_tune['val_loss']):
+    plt.text(epoch, loss, f"{loss:.2f}", ha='center', va='bottom', fontsize=8, color='orange')
+
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.legend()
+plt.title('Train and Validation Loss - Fine-tuning')
+
+plt.savefig(result_path+'_finetuning_loss.png')
 plt.clf()
 
 """五、使用微調完的模型對測試資料及做推論，計算top-1至top-3 accuracy"""
@@ -421,6 +471,10 @@ with torch.no_grad():
         if all(count >= images_per_class for count in class_display_count.values()):
             break
 
+top1 = str(round(test_topk_accuracy["Top-1 Accuracy"], 2))
+top2 = str(round(test_topk_accuracy["Top-2 Accuracy"], 2))
+top3 = str(round(test_topk_accuracy["Top-3 Accuracy"], 2))
+
 # 確保布局緊湊
 plt.tight_layout()
-plt.savefig(result_path + "_" + str(round(test_topk_accuracy["Top-1 Accuracy"], 2)) + ".png")
+plt.savefig(f"{result_path}_{top1}_{top2}_{top3}.png")

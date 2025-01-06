@@ -36,7 +36,7 @@ val_test_transform = transforms.Compose([
 
 # 設定資料夾路徑
 # 假設資料夾結構如下：
-# after_crop/Surprised, Scared, Sad, Normal, Happy, Disgusted, Angry
+# after_crop/Angry, Disgusted, Happy, Normal, Sad, Scared, Surprised
 # after_crop 資料夾內每個子資料夾對應一個類別
 
 # 使用 ImageFolder 加載資料
@@ -124,7 +124,7 @@ print("Dataset sizes:", dataset_sizes)
 def train_model(model, dataloaders, criterion, optimizer, scheduler, num_epochs=5, log_file='train_log.txt'):
     best_model_wts = copy.deepcopy(model.state_dict())
     best_acc = 0.0
-    history = {'train_acc': [], 'val_acc': []}
+    history = {'train_acc': [], 'val_acc': [], 'train_loss': [], 'val_loss': [], 'lr': []}
 
     # 開啟 log 文件進行寫入
     with open(log_file, 'w') as log:
@@ -162,7 +162,8 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, num_epochs=
                     # 前向傳播
                     with torch.set_grad_enabled(phase == 'train'):
                         outputs = model(inputs)
-                        logits = outputs
+
+                        logits = outputs  # 如果是 Tensor，直接使用
                         _, preds = torch.max(logits, 1)
                         loss = criterion(logits, labels)
 
@@ -178,6 +179,7 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, num_epochs=
                 # 更新學習率調度器
                 if phase == 'train':
                     scheduler.step()
+                    history['lr'].append(optimizer.param_groups[0]['lr'])
 
                 # 計算每個 epoch 的損失和準確率
                 epoch_loss = running_loss / dataset_sizes[phase]
@@ -189,8 +191,10 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, num_epochs=
                 # 保存準確率歷史記錄
                 if phase == 'train':
                     history['train_acc'].append(epoch_acc.item())
+                    history['train_loss'].append(epoch_loss)
                 else:
                     history['val_acc'].append(epoch_acc.item())
+                    history['val_loss'].append(epoch_loss)
 
                 # 如果驗證準確率提高，保存模型權重
                 if phase == 'val' and epoch_acc > best_acc:
@@ -213,7 +217,15 @@ result_path = '../result/ResNet18/resnet18'
 
 # # 訓練模型
 # num_epochs = 25
-# best_model, history = train_model(model, dataloaders, criterion, optimizer, exp_lr_scheduler, num_epochs, log_file=result_path+"_fe.txt")
+# best_model, history = train_model(
+#     model, 
+#     dataloaders, 
+#     criterion, 
+#     optimizer, 
+#     exp_lr_scheduler, 
+#     num_epochs, 
+#     log_file=result_path+"_fe.txt"
+# )
 
 # # 保存最佳模型權重
 # torch.save(best_model.state_dict(), result_path+'_feature_extraction.pth')
@@ -225,17 +237,36 @@ result_path = '../result/ResNet18/resnet18'
 
 # # 添加數值標註
 # for epoch, acc in zip(epochs, history['train_acc']):
-#     plt.text(epoch, acc, f"{acc:.2f}", ha='center', va='bottom', fontsize=6, color='blue')
+#     plt.text(epoch, acc, f"{acc:.2f}", ha='center', va='bottom', fontsize=8, color='blue')
 
 # for epoch, acc in zip(epochs, history['val_acc']):
-#     plt.text(epoch, acc, f"{acc:.2f}", ha='center', va='bottom', fontsize=6, color='orange')
+#     plt.text(epoch, acc, f"{acc:.2f}", ha='center', va='bottom', fontsize=8, color='orange')
 
 # plt.xlabel('Epoch')
-# plt.ylabel('accuracy')
+# plt.ylabel('Accuracy')
 # plt.legend()
-# plt.title('Train and Validation Accuracy-Feature Extraction')
+# plt.title('Train and Validation Accuracy - Feature Extraction')
 
 # plt.savefig(result_path+'_feature_extraction.png')
+# plt.clf()
+
+# # 繪製訓練和驗證損失曲線
+# plt.plot(epochs, history['train_loss'], label='Train Loss', marker='o')
+# plt.plot(epochs, history['val_loss'], label='Val Loss', marker='o')
+
+# # 添加數值標註
+# for epoch, loss in zip(epochs, history['train_loss']):
+#     plt.text(epoch, loss, f"{loss:.2f}", ha='center', va='bottom', fontsize=8, color='blue')
+
+# for epoch, loss in zip(epochs, history['val_loss']):
+#     plt.text(epoch, loss, f"{loss:.2f}", ha='center', va='bottom', fontsize=8, color='orange')
+
+# plt.xlabel('Epoch')
+# plt.ylabel('Loss')
+# plt.legend()
+# plt.title('Train and Validation Loss - Feature Extraction')
+
+# plt.savefig(result_path+'_feature_extraction_loss.png')
 # plt.clf()
 
 """五、進行fine-tuning"""
@@ -244,17 +275,14 @@ result_path = '../result/ResNet18/resnet18'
 # 假設特徵提取的最佳模型已經訓練完成並保存為 "resnet18_feature_extraction.pth"
 
 # 載入模型並載入最佳權重
-
-# 載入 ResNet18 預訓練權重
-weights = models.ResNet18_Weights.IMAGENET1K_V1
-model = models.resnet18(weights=weights)
+model = models.resnet18()
 
 # 修改分類器以適應新的類別數量
 num_ftrs = model.fc.in_features
 model.fc = nn.Linear(num_ftrs, 7)
 
 # 確保模型權重載入時符合安全性建議
-model.load_state_dict(torch.load(result_path+'_feature_extraction.pth'))
+model.load_state_dict(torch.load(result_path+'_feature_extraction.pth', weights_only=True))
 
 # 鎖定所有層的參數
 for param in model.parameters():
@@ -269,7 +297,7 @@ for name, param in model.named_parameters():
 model = model.to(device)
 
 # 定義優化器和學習率調度器
-optimizer = optim.SGD(filter(lambda p: p.requires_grad, model.parameters()), lr=0.00005, momentum=0.9, weight_decay=0.8)
+optimizer = optim.SGD(filter(lambda p: p.requires_grad, model.parameters()), lr=0.0001, momentum=0.9, weight_decay=0.5)
 scheduler = lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.1)
 
 # 使用與特徵提取時相同的損失函數
@@ -304,14 +332,33 @@ for epoch, acc in zip(epochs, history_fine_tune['val_acc']):
     plt.text(epoch, acc, f"{acc:.2f}", ha='center', va='bottom', fontsize=8, color='orange')
 
 plt.xlabel('Epoch')
-plt.ylabel('accuracy')
+plt.ylabel('Accuracy')
 plt.legend()
-plt.title('Train and Validation Accuracy-Fine-tuning')
+plt.title('Train and Validation Accuracy - Fine-tuning')
 
 plt.savefig(result_path+'_finetuning.png')
 plt.clf()
 
-"""六、使用微調完的模型對測試資料及做推論，計算top-1至top-3 accuracy"""
+# 繪製訓練和驗證損失曲線
+plt.plot(epochs, history_fine_tune['train_loss'], label='Train Loss', marker='o')
+plt.plot(epochs, history_fine_tune['val_loss'], label='Val Loss', marker='o')
+
+# 添加數值標註
+for epoch, loss in zip(epochs, history_fine_tune['train_loss']):
+    plt.text(epoch, loss, f"{loss:.2f}", ha='center', va='bottom', fontsize=8, color='blue')
+
+for epoch, loss in zip(epochs, history_fine_tune['val_loss']):
+    plt.text(epoch, loss, f"{loss:.2f}", ha='center', va='bottom', fontsize=8, color='orange')
+
+plt.xlabel('Epoch')
+plt.ylabel('Loss')
+plt.legend()
+plt.title('Train and Validation Loss - Fine-tuning')
+
+plt.savefig(result_path+'_finetuning_loss.png')
+plt.clf()
+
+"""五、使用微調完的模型對測試資料及做推論，計算top-1至top-3 accuracy"""
 
 # 測試資料集推論: 計算 Top-1、Top-2、Top-3 準確率
 def calculate_topk_accuracy(model, dataloader, device, k=(1, 2, 3)):
@@ -393,5 +440,10 @@ with torch.no_grad():
         if all(count >= images_per_class for count in class_display_count.values()):
             break
 
+top1 = str(round(test_topk_accuracy["Top-1 Accuracy"], 2))
+top2 = str(round(test_topk_accuracy["Top-2 Accuracy"], 2))
+top3 = str(round(test_topk_accuracy["Top-3 Accuracy"], 2))
+
+# 確保布局緊湊
 plt.tight_layout()
-plt.savefig(result_path + "_" + str(round(test_topk_accuracy["Top-1 Accuracy"], 2)) + ".png")
+plt.savefig(f"{result_path}_{top1}_{top2}_{top3}.png")
