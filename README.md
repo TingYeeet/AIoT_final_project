@@ -31,11 +31,9 @@ fine-tuning 10 epochs
 |/EfficientNet-B2|/InceptionV3|/MobileNetV2|/ResNet18|/SqueezeNet|
 | ------------- | ------------- |------------- |------------- |------------- |  
   
-evaluation-Confusion_matrix.py  
+evaluation-confusion matrix.py 
 輸入指定的finetuned權重對/after_crop所有資料做分類，輸出7x7=49格的confusion matrix  
 附上每類別和綜合七類別的Precision、Recall、F1-Score
-  
-
 
 
 
