@@ -16,7 +16,10 @@ real_predict_UI.py
 --------------------------
 /training code  
 |efficientnet_b2.py|inception_v3.py|mobilenet_v2.py|resnet18.py|squeezenet.py|
-| ------------- | ------------- |------------- |------------- |------------- |
+| ------------- | ------------- |------------- |------------- |------------- |  
+  
+feature extraction 25 epochs  
+fine-tuning 10 epochs  
 
 訓練結果
 --------------------------
@@ -24,7 +27,11 @@ real_predict_UI.py
 |/EfficientNet-B2|/InceptionV3|/MobileNetV2|/ResNet18|/SqueezeNet|
 | ------------- | ------------- |------------- |------------- |------------- |  
   
-註:未加tensorboard
+evaluation-Confusion_matrix.py  
+輸入指定的finetuned權重對after_crop所有資料做分類，輸出7x7=49格的confusion matrix  
+附上每類別和綜合七類別的Precision、Recall、F1-Score
+  
+
 
 
 
