@@ -24,11 +24,15 @@ fine-tuning 10 epochs
 訓練結果
 --------------------------
 /result  
+|/EfficientNet-B2|/MobileNetV2|/ResNet18|/SqueezeNet|
+| ------------- | ------------- |------------- |------------- |  
+  
+/result(backup) -> 前次YOLO權重最佳  
 |/EfficientNet-B2|/InceptionV3|/MobileNetV2|/ResNet18|/SqueezeNet|
 | ------------- | ------------- |------------- |------------- |------------- |  
   
 evaluation-Confusion_matrix.py  
-輸入指定的finetuned權重對after_crop所有資料做分類，輸出7x7=49格的confusion matrix  
+輸入指定的finetuned權重對/after_crop所有資料做分類，輸出7x7=49格的confusion matrix  
 附上每類別和綜合七類別的Precision、Recall、F1-Score
   
 
